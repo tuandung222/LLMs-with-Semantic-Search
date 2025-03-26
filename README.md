@@ -419,13 +419,14 @@ The project consists of three main services, all running in Docker containers:
 ## 🌟 Project Highlights
 
 - **Designed and implemented a full-stack RAG system** using FastAPI, Weaviate, and OpenAI
-- **Architected a containerized microservices solution** with Docker Compose
+- **Architected a containerized microservices solution** with Docker Compose for local development
 - **Deployed a fully self-hosted vector database** for complete data control and privacy
+- **Implemented CI/CD pipelines with GitHub Actions** for automated testing, building, and deployment
+- **Created Kubernetes manifests for production deployment** with scalability and high availability
+- **Configured Terraform IaC** for reproducible cloud infrastructure provisioning
+- **Set up automated Docker image publishing** to Docker Hub registry with versioning
 - **Engineered an intelligent text processing pipeline** for optimal document chunking
-- **Integrated OpenAI's latest embedding models** for semantic search
-- **Developed comprehensive REST API endpoints** with full documentation
-- **Created resilient error handling mechanisms** for system stability
-- **Optimized vector search performance** through fine-tuning
-- **Implemented cross-version compatibility** for OpenAI SDK
-- **Executed thorough end-to-end testing** of all components
-- **Provided detailed documentation** for developers and users
+- **Developed comprehensive REST API endpoints** with OpenAPI documentation
+- **Implemented secure secrets management** across local and cloud environments
+- **Optimized vector search performance** through database configuration and query tuning
+- **Created resilient error handling mechanisms** with fallbacks for all external dependencies
