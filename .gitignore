@@ -1,0 +1,99 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+*.ann
+*.pkl
+*.index
+search_index.ann
+sample_text.txt
+archive.tar.gz
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Kubernetes
+.kube/
+*.kubeconfig
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+.terraformrc
+terraform.rc
+
+# Logs
+*.log
+logs/
+log/
+
+# Local development
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/ 
+
+
+# openai_api_key.txt and weaviate_api_key.txt
+openai_api_key.txt
+weaviate_api_key.txt
+.env
+
+# cache folder and archive folder
+cache/
+archive/
+__pycache__/
+.pytest_cache/
+*.pyc
