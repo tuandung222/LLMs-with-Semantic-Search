@@ -8,7 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code and configuration
 COPY src/ src/
-COPY .env .
+# Create empty .env file if not exists
+RUN touch .env
 # COPY logging_config.json .
 
 # Set environment variables

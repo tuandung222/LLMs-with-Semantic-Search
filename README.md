@@ -48,92 +48,40 @@ A production-ready semantic search application that combines vector embeddings a
 ┌───────────────────┐    ┌──────────────────┐      ┌────────────────┐
 │   Sample Data     │    │Vector Database   │      │   OpenAI API   │
 │  ┌─────────────┐ │    │   (Weaviate)     │      │ ┌────────────┐ │
-│  │Text Samples │ │    │ │Vector Store  │ │      │ │Text-to-Vec │ │
-│  │& Metadata   │ │    │ │& Search Index│ │      │ └────────────┘ │
-│  └─────────────┘ │    │ │& Search Index│ │      │
+│  │Text Samples │ │    │ ┌──────────────┐ │      │ │Text-to-Vec │ │
+│  │& Metadata   │ │    │ │Vector Store  │ │      │ │Generation  │ │
+│  └─────────────┘ │    │ │& Search Index│ │      │ └────────────┘ │
 └───────────────────┘    └──────────────────┘      └────────────────┘
-
 ```
 
-### Core Components
+### Core Components and Data Flow
 
 1. **Search Server (FastAPI)**
-   - **TextProcessor**: Handles document preprocessing
-     - Intelligent text chunking with configurable overlap
-     - Paragraph splitting and cleaning
-     - Maintains semantic coherence between chunks
-   
-   - **EmbeddingManager**: Manages vector operations
-     - Creates and caches OpenAI embeddings
-     - Handles vector similarity search
-     - Manages Weaviate database operations
-     - Implements fallback mechanisms
-   
-   - **GenerativeSearch**: Orchestrates search and generation
-     - Combines semantic search with LLM generation
-     - Manages context-aware question answering
-     - Handles multiple generation requests
-     - Implements error handling and fallbacks
+   - **TextProcessor**: Document preprocessing and chunking
+   - **EmbeddingManager**: Vector operations and caching
+   - **GenerativeSearch**: Search and answer generation
 
 2. **Vector Database (Weaviate)**
-   - Scalable vector storage and retrieval
+   - Scalable vector storage and search
+   - Document metadata management
    - Real-time similarity search
-   - Schema management for document metadata
-   - Batch processing capabilities
-   - Data persistence and backup
 
 3. **OpenAI Integration**
-   - **Embedding Generation**: text-embedding-3-small model
-   - **Text Generation**: GPT-3.5 Turbo for QA
-   - Configurable parameters:
-     - Temperature control
-     - Token limits
-     - Model selection
-     - Batch processing
+   - Embedding Generation (text-embedding-3-small)
+   - Text Generation (GPT-3.5 Turbo)
+   - Configurable parameters
 
-4. **Demo Frontend (Streamlit)**
-   - Interactive document upload interface
-   - Real-time question answering
-   - Search result visualization
-   - Error handling and user feedback
-
-### Data Flow
-
-1. **Document Processing Pipeline**:
+4. **Data Pipelines**
    ```
+   Document Processing:
    Raw Text → TextProcessor → Chunks → EmbeddingManager → Vectors → Weaviate
-   ```
-
-2. **Question Answering Pipeline**:
-   ```
+   
+   Question Answering:
    Question → EmbeddingManager → Similar Chunks → GenerativeSearch → Answer
-   ```
-
-3. **Sample Data Pipeline**:
-   ```
+   
+   Sample Data:
    Sample Data → TextProcessor → EmbeddingGenerator → Cached Vectors → Weaviate
    ```
-
-### Key Features
-
-- **Fault Tolerance**: Fallback mechanisms for API failures
-- **Caching**: Efficient embedding storage and retrieval
-- **Scalability**: Containerized services with Docker
-- **Monitoring**: Comprehensive logging and error tracking
-- **Security**: API key management and access control
-
-## 🌟 Project Highlights
-
-- **Designed and implemented a full-stack RAG system** using FastAPI, Weaviate, and OpenAI
-- **Architected a containerized microservices solution** with Docker Compose
-- **Engineered an intelligent text processing pipeline** for optimal document chunking
-- **Integrated OpenAI's latest embedding models** for semantic search
-- **Developed comprehensive REST API endpoints** with full documentation
-- **Created resilient error handling mechanisms** for system stability
-- **Optimized vector search performance** through fine-tuning
-- **Implemented cross-version compatibility** for OpenAI SDK
-- **Executed thorough end-to-end testing** of all components
-- **Provided detailed documentation** for developers and users
 
 ## ✨ Features
 
@@ -155,9 +103,10 @@ A production-ready semantic search application that combines vector embeddings a
 
 ### Technical Features
 - **Production-Ready Architecture**
-  - Containerized deployment
-  - Kubernetes support
-  - Cloud infrastructure with Terraform
+  - Fault tolerance and fallbacks
+  - Efficient caching system
+  - Comprehensive monitoring
+  - Secure key management
 
 - **Developer-Friendly API**
   - RESTful endpoints
@@ -181,7 +130,7 @@ A production-ready semantic search application that combines vector embeddings a
 ### Quick Start
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/semantic-search.git
+   git clone https://github.com/tuandung12092002/semantic-search.git
    cd semantic-search
    ```
 
@@ -321,10 +270,11 @@ curl -X POST http://localhost:8000/search \
 
 ## 📚 Additional Resources
 
-- [API Documentation](http://localhost:8000/docs)
-- [OpenAI Documentation](https://platform.openai.com/docs)
-- [Weaviate Documentation](https://weaviate.io/developers/weaviate)
-- [FastAPI Documentation](https://fastapi.tiangolo.com)
+- [API Documentation](https://github.com/tuandung12092002/semantic-search/wiki/API-Documentation)
+- [Development Guide](https://github.com/tuandung12092002/semantic-search/wiki/Development-Guide)
+- [Deployment Guide](https://github.com/tuandung12092002/semantic-search/wiki/Deployment-Guide)
+- [Contributing Guidelines](https://github.com/tuandung12092002/semantic-search/blob/main/CONTRIBUTING.md)
+- [Change Log](https://github.com/tuandung12092002/semantic-search/blob/main/CHANGELOG.md)
 
 ## 📄 License
 

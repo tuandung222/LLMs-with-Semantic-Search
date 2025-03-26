@@ -1,0 +1,120 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  pull_request:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+env:
+  DOCKER_USERNAME: tuandung12092002
+  SEARCH_SERVER_IMAGE: tuandung12092002/semantic-search-server
+  DEMO_APP_IMAGE: tuandung12092002/semantic-search-demo
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .env file
+        run: |
+          # Copy the example file first
+          cp .env.example .env
+          # No need to add secrets here, they'll be passed at runtime via Docker secrets
+
+      - name: Create secret files for build context
+        run: |
+          # Create placeholder files for secrets
+          echo "placeholder" > openai_api_key.txt
+          echo "placeholder" > weaviate_api_key.txt
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Search Server
+        id: meta-search
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.SEARCH_SERVER_IMAGE }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') || github.ref == format('refs/heads/{0}', 'master') }}
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: Build and push Search Server
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/search_server.Dockerfile
+          push: true
+          tags: ${{ steps.meta-search.outputs.tags }}
+          labels: ${{ steps.meta-search.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata (tags, labels) for Demo App
+        id: meta-demo
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DEMO_APP_IMAGE }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') || github.ref == format('refs/heads/{0}', 'master') }}
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: Build and push Demo App
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/demo_app.Dockerfile
+          push: true
+          tags: ${{ steps.meta-demo.outputs.tags }}
+          labels: ${{ steps.meta-demo.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test-deployment:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Create secret files
+        run: |
+          echo "${{ secrets.OPENAI_API_KEY }}" > openai_api_key.txt
+          echo "${{ secrets.WEAVIATE_API_KEY }}" > weaviate_api_key.txt
+          
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose -f docker/docker-compose.full.yml up -d
+          
+      - name: Wait for services to start
+        run: |
+          echo "Waiting for services to be ready..."
+          sleep 30
+          
+      - name: Test Search API
+        run: |
+          curl --fail --silent http://localhost:8000/health
+          echo "Health check successful"
+          
+      - name: Clean up
+        run: |
+          docker-compose -f docker/docker-compose.full.yml down
+          rm openai_api_key.txt weaviate_api_key.txt 
