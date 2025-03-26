@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: Main CI/CD Pipeline
 
 on:
   push:
@@ -19,17 +19,59 @@ env:
   DEMO_APP_IMAGE: tuandung12092002/semantic-search-demo
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Create environment files
+        run: |
+          echo "${{ secrets.OPENAI_API_KEY }}" > openai_api_key.txt
+          echo "${{ secrets.WEAVIATE_API_KEY }}" > weaviate_api_key.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Install package in development mode
+        run: |
+          pip install -e .
+
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WEAVIATE_API_KEY: ${{ secrets.WEAVIATE_API_KEY }}
+        run: |
+          pytest src/test_connection.py -v
+
+  build-and-push:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Login to DockerHub
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           username: ${{ env.DOCKER_USERNAME }}
@@ -41,10 +83,8 @@ jobs:
         with:
           images: ${{ env.SEARCH_SERVER_IMAGE }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
             type=sha,format=short
+            type=ref,event=branch
             latest
 
       - name: Extract metadata for Demo App
@@ -53,10 +93,8 @@ jobs:
         with:
           images: ${{ env.DEMO_APP_IMAGE }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
             type=sha,format=short
+            type=ref,event=branch
             latest
 
       - name: Build and Push Search Server Image
@@ -64,22 +102,22 @@ jobs:
         with:
           context: .
           file: ./docker/search_server.Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta-search-server.outputs.tags }}
           labels: ${{ steps.meta-search-server.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.SEARCH_SERVER_IMAGE }}:buildcache
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}:buildcache,mode=max', env.SEARCH_SERVER_IMAGE) || '' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and Push Demo App Image 
+      - name: Build and Push Demo App Image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/demo_app.Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: true
           tags: ${{ steps.meta-demo-app.outputs.tags }}
           labels: ${{ steps.meta-demo-app.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.DEMO_APP_IMAGE }}:buildcache
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0}:buildcache,mode=max', env.DEMO_APP_IMAGE) || '' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   test-deployment:
     needs: build-and-push
@@ -89,18 +127,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Create OpenAI API key file
+      - name: Create environment files
         run: |
-          echo "${{ secrets.OPENAI_API_KEY }}" > openai_api_key.txt
-          echo "dummy-key" > weaviate_api_key.txt
-        
-      - name: Deploy with Docker Compose for Testing
+          mkdir -p secrets
+          echo "${{ secrets.OPENAI_API_KEY }}" > secrets/openai_api_key.txt
+          echo "${{ secrets.WEAVIATE_API_KEY }}" > secrets/weaviate_api_key.txt
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Deploy application
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WEAVIATE_API_KEY: ${{ secrets.WEAVIATE_API_KEY }}
         run: |
           docker-compose -f docker/docker-compose.full.yml up -d
-          
-      - name: Wait for Services to Start
+
+      - name: Wait for services to start
         run: |
-          # Wait for search server to be healthy
           timeout=120
           counter=0
           echo "Waiting for services to be ready..."
@@ -114,7 +161,7 @@ jobs:
             counter=$((counter + 5))
           done
           echo "Services are ready!"
-      
+
       - name: Test Search API
         run: |
           # Process a test document
@@ -137,8 +184,8 @@ jobs:
             exit 1
           fi
 
-      - name: Cleanup Resources
+      - name: Cleanup
+        if: always()
         run: |
-          docker-compose -f docker/docker-compose.full.yml down 
-
-           
+          docker-compose -f docker/docker-compose.full.yml down
+          docker logout 
