@@ -3,6 +3,7 @@
 A production-ready semantic search application that combines vector embeddings and Large Language Models to provide intelligent question answering and information retrieval over custom document collections.
 
 ## 📋 Table of Contents
+
 - [Architecture Overview](#architecture-overview)
 - [Project Highlights](#project-highlights)
 - [Features](#features)
@@ -57,28 +58,32 @@ A production-ready semantic search application that combines vector embeddings a
 ### Core Components and Data Flow
 
 1. **Search Server (FastAPI)**
+
    - **TextProcessor**: Document preprocessing and chunking
    - **EmbeddingManager**: Vector operations and caching
    - **GenerativeSearch**: Search and answer generation
 
 2. **Vector Database (Weaviate)**
+
    - Scalable vector storage and search
    - Document metadata management
    - Real-time similarity search
 
 3. **OpenAI Integration**
+
    - Embedding Generation (text-embedding-3-small)
    - Text Generation (GPT-3.5 Turbo)
    - Configurable parameters
 
 4. **Data Pipelines**
+
    ```
    Document Processing:
    Raw Text → TextProcessor → Chunks → EmbeddingManager → Vectors → Weaviate
-   
+
    Question Answering:
    Question → EmbeddingManager → Similar Chunks → GenerativeSearch → Answer
-   
+
    Sample Data:
    Sample Data → TextProcessor → EmbeddingGenerator → Cached Vectors → Weaviate
    ```
@@ -86,12 +91,15 @@ A production-ready semantic search application that combines vector embeddings a
 ## ✨ Features
 
 ### Core Capabilities
+
 - **Advanced Semantic Search**
+
   - Meaning-based content discovery
   - Multi-document context awareness
   - Configurable search parameters
 
 - **Intelligent Document Processing**
+
   - Automatic text chunking
   - Semantic relationship preservation
   - Multiple document format support
@@ -102,13 +110,16 @@ A production-ready semantic search application that combines vector embeddings a
   - Confidence scoring
 
 ### Technical Features
+
 - **Production-Ready Architecture**
+
   - Fault tolerance and fallbacks
   - Efficient caching system
   - Comprehensive monitoring
   - Secure key management
 
 - **Developer-Friendly API**
+
   - RESTful endpoints
   - Comprehensive documentation
   - Example implementations
@@ -121,6 +132,7 @@ A production-ready semantic search application that combines vector embeddings a
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Python 3.9+
 - Docker and Docker Compose
 - OpenAI API key
@@ -128,13 +140,16 @@ A production-ready semantic search application that combines vector embeddings a
 - (Optional) GCP account for Terraform deployment
 
 ### Quick Start
+
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/tuandung12092002/semantic-search.git
    cd semantic-search
    ```
 
 2. **Set up environment**
+
    ```bash
    # Create environment files
    cp .env.example .env
@@ -143,6 +158,7 @@ A production-ready semantic search application that combines vector embeddings a
    ```
 
 3. **Start the application**
+
    ```bash
    docker-compose -f docker/docker-compose.full.yml up -d
    ```
@@ -155,6 +171,7 @@ A production-ready semantic search application that combines vector embeddings a
 ## 🔧 API Usage
 
 ### Process Documents
+
 ```bash
 curl -X POST http://localhost:8000/process-text \
   -H "Content-Type: application/json" \
@@ -168,6 +185,7 @@ curl -X POST http://localhost:8000/process-text \
 ```
 
 ### Ask Questions
+
 ```bash
 curl -X POST http://localhost:8000/ask-question \
   -H "Content-Type: application/json" \
@@ -180,6 +198,7 @@ curl -X POST http://localhost:8000/ask-question \
 ```
 
 ### Search Documents
+
 ```bash
 curl -X POST http://localhost:8000/search \
   -H "Content-Type: application/json" \
@@ -192,13 +211,16 @@ curl -X POST http://localhost:8000/search \
 ## 🔄 CI/CD Pipeline
 
 ### Workflow Overview
+
 - **Automated Testing**: Unit and integration tests
 - **Docker Image Building**: Multi-stage builds with caching
 - **Deployment**: Automated deployment to staging/production
 - **Security Scans**: Dependency and container scanning
 
 ### Configuration
+
 1. **Required Secrets**
+
    - `DOCKERHUB_TOKEN`: Docker Hub access token
    - `OPENAI_API_KEY`: OpenAI API key
    - `WEAVIATE_API_KEY`: Weaviate API key
@@ -211,7 +233,9 @@ curl -X POST http://localhost:8000/search \
 ## 🛠️ Development Guide
 
 ### Local Development
+
 1. **Set up virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # or `venv\Scripts\activate` on Windows
@@ -219,6 +243,7 @@ curl -X POST http://localhost:8000/search \
    ```
 
 2. **Install development dependencies**
+
    ```bash
    pip install -r requirements-dev.txt
    ```
@@ -229,6 +254,7 @@ curl -X POST http://localhost:8000/search \
    ```
 
 ### Code Style
+
 - Follow PEP 8 guidelines
 - Use type hints
 - Write docstrings for all functions
@@ -239,6 +265,7 @@ curl -X POST http://localhost:8000/search \
 ### Common Issues and Solutions
 
 1. **OpenAI API Issues**
+
    - **Error**: Authentication failed
      ```
      Solution: Check API key in .env and secrets
@@ -249,6 +276,7 @@ curl -X POST http://localhost:8000/search \
      ```
 
 2. **Docker Issues**
+
    - **Error**: Container fails to start
      ```
      Solution: Check logs with `docker-compose logs`
@@ -285,4 +313,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - OpenAI team for their excellent API and models
 - Weaviate team for the vector database
 - FastAPI and Streamlit teams for their frameworks
-- The open-source community for their contributions 
+- The open-source community for their contributions

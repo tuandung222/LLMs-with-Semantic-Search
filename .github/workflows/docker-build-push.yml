@@ -102,7 +102,7 @@ jobs:
           
       - name: Deploy with Docker Compose
         run: |
-          docker-compose -f docker/docker-compose.full.yml up -d
+          docker compose -f docker/docker-compose.full.yml up -d
           
       - name: Wait for services to start
         run: |
@@ -116,5 +116,5 @@ jobs:
           
       - name: Clean up
         run: |
-          docker-compose -f docker/docker-compose.full.yml down
+          docker compose -f docker/docker-compose.full.yml down
           rm openai_api_key.txt weaviate_api_key.txt 
