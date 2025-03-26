@@ -20,43 +20,107 @@ A production-ready semantic search application that combines vector embeddings a
 ## 🏗️ Architecture Overview
 
 ```
-┌───────────────────┐      ┌───────────────────┐      ┌───────────────────┐
-│                   │      │                   │      │                   │
-│   Demo Frontend   │<─────│   Search Server   │<─────│  Vector Database  │
-│   (Streamlit)     │      │   (FastAPI)       │      │   (Weaviate)      │
-│                   │      │                   │      │                   │
-└───────────────────┘      └───────────────────┘      └───────────────────┘
-         ▲                          ▲                          ▲
-         │                          │                          │
-         │                          │                          │
-         │                          ▼                          │
-         │                 ┌───────────────────┐              │
-         │                 │                   │              │
-         └─────────────────│   OpenAI API      │──────────────┘
-                           │                   │
-                           └───────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Demo Frontend (Streamlit)                      │
+│                                                                         │
+│   ┌─────────────────┐  ┌────────────────┐  ┌────────────────────┐     │
+│   │  Document       │  │   Question     │  │    Results         │     │
+│   │  Upload UI      │  │   Input UI     │  │    Display UI      │     │
+│   └────────┬────────┘  └───────┬────────┘  └────────┬───────────┘     │
+└────────────┼────────────────────┼────────────────────┼─────────────────┘
+             │                     │                    │
+             ▼                     ▼                    ▲
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Search Server (FastAPI)                          │
+│                                                                        │
+│  ┌──────────────────┐   ┌──────────────────┐   ┌─────────────────┐   │
+│  │  TextProcessor   │   │  EmbeddingManager │   │ GenerativeSearch│   │
+│  │ ┌──────────────┐│   │ ┌──────────────┐ │   │ ┌─────────────┐ │   │
+│  │ │Clean & Chunk ││   │ │Create & Cache │ │   │ │Answer Gen.  │ │   │
+│  │ │Text          ││──►│ │Embeddings    │ │──►│ │with Context │ │   │
+│  │ └──────────────┘│   │ └──────────────┘ │   │ └─────────────┘ │   │
+│  └──────────────────┘   └────────┬─────────┘   └─────────┬───────┘   │
+│           ▲                       │                        │           │
+└───────────┼───────────────────────┼────────────────────────┼──────────┘
+            │                       │                         │
+     Raw Text│                      │Vectors                  │Prompts
+            │                       ▼                         │
+┌───────────────────┐    ┌──────────────────┐      ┌────────────────┐
+│   Sample Data     │    │Vector Database   │      │   OpenAI API   │
+│  ┌─────────────┐ │    │   (Weaviate)     │      │ ┌────────────┐ │
+│  │Text Samples │ │    │ │Vector Store  │ │      │ │Text-to-Vec │ │
+│  │& Metadata   │ │    │ │& Search Index│ │      │ └────────────┘ │
+│  └─────────────┘ │    │ │& Search Index│ │      │
+└───────────────────┘    └──────────────────┘      └────────────────┘
+
 ```
 
-### System Components
-1. **Vector Database (Weaviate)**
-   - Stores document vectors using OpenAI embeddings
-   - Enables semantic similarity search
-   - Provides scalable vector storage
+### Core Components
 
-2. **Search Server (FastAPI)**
-   - Handles document processing and chunking
-   - Manages vector searches and embeddings
-   - Implements question answering logic
+1. **Search Server (FastAPI)**
+   - **TextProcessor**: Handles document preprocessing
+     - Intelligent text chunking with configurable overlap
+     - Paragraph splitting and cleaning
+     - Maintains semantic coherence between chunks
+   
+   - **EmbeddingManager**: Manages vector operations
+     - Creates and caches OpenAI embeddings
+     - Handles vector similarity search
+     - Manages Weaviate database operations
+     - Implements fallback mechanisms
+   
+   - **GenerativeSearch**: Orchestrates search and generation
+     - Combines semantic search with LLM generation
+     - Manages context-aware question answering
+     - Handles multiple generation requests
+     - Implements error handling and fallbacks
 
-3. **Demo Frontend (Streamlit)**
-   - User-friendly interface for document uploads
-   - Interactive question answering
+2. **Vector Database (Weaviate)**
+   - Scalable vector storage and retrieval
+   - Real-time similarity search
+   - Schema management for document metadata
+   - Batch processing capabilities
+   - Data persistence and backup
+
+3. **OpenAI Integration**
+   - **Embedding Generation**: text-embedding-3-small model
+   - **Text Generation**: GPT-3.5 Turbo for QA
+   - Configurable parameters:
+     - Temperature control
+     - Token limits
+     - Model selection
+     - Batch processing
+
+4. **Demo Frontend (Streamlit)**
+   - Interactive document upload interface
+   - Real-time question answering
    - Search result visualization
+   - Error handling and user feedback
 
-4. **OpenAI Integration**
-   - Text embeddings for semantic search
-   - Question answering with context
-   - Fallback mechanisms for API outages
+### Data Flow
+
+1. **Document Processing Pipeline**:
+   ```
+   Raw Text → TextProcessor → Chunks → EmbeddingManager → Vectors → Weaviate
+   ```
+
+2. **Question Answering Pipeline**:
+   ```
+   Question → EmbeddingManager → Similar Chunks → GenerativeSearch → Answer
+   ```
+
+3. **Sample Data Pipeline**:
+   ```
+   Sample Data → TextProcessor → EmbeddingGenerator → Cached Vectors → Weaviate
+   ```
+
+### Key Features
+
+- **Fault Tolerance**: Fallback mechanisms for API failures
+- **Caching**: Efficient embedding storage and retrieval
+- **Scalability**: Containerized services with Docker
+- **Monitoring**: Comprehensive logging and error tracking
+- **Security**: API key management and access control
 
 ## 🌟 Project Highlights
 
