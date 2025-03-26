@@ -1,6 +1,6 @@
 # Semantic Search with Generative AI
 
-A production-ready semantic search application that combines vector embeddings and Large Language Models to provide intelligent question answering and information retrieval over custom document collections.
+A production-ready semantic search application that combines vector embeddings and Large Language Models to provide intelligent question answering and information retrieval over custom document collections. The system features a self-hosted Weaviate vector database for complete control over your data, without relying on external vector database services.
 
 ## 📋 Table of Contents
 
@@ -38,10 +38,13 @@ flowchart TB
         EmbMgr --> GenSearch
     end
     
-    subgraph External["External Services"]
+    subgraph SelfHosted["Self-Hosted Infrastructure"]
         VecDB["Vector Database<br>(Weaviate)"]
-        OpenAI["OpenAI API"]
         SampleData["Sample Data<br>Text Samples & Metadata"]
+    end
+    
+    subgraph External["External Services"]
+        OpenAI["OpenAI API"]
     end
     
     DocUI --> TextProc
@@ -54,12 +57,16 @@ flowchart TB
     
     classDef frontend fill:#e6f7ff,stroke:#0099cc
     classDef server fill:#e6ffe6,stroke:#00cc66
+    classDef selfhosted fill:#e6e6ff,stroke:#6666cc
     classDef external fill:#fff0e6,stroke:#ff9933
     
     class Frontend frontend
     class Server server
+    class SelfHosted selfhosted
     class External external
 ```
+
+> **IMPORTANT:** Unlike many other RAG solutions that rely on cloud-based vector databases, this system includes a **self-hosted Weaviate vector database** deployed alongside the application components. This architectural choice provides full control over your data, eliminates external dependencies, and enhances privacy and security.
 
 ### Core Components and Data Flow
 
@@ -69,8 +76,11 @@ flowchart TB
    - **EmbeddingManager**: Vector operations and caching
    - **GenerativeSearch**: Search and answer generation
 
-2. **Vector Database (Weaviate)**
+2. **Self-Hosted Vector Database (Weaviate)**
 
+   - Containerized vector database deployed with the application
+   - Full control over vector data storage and configuration
+   - No external cloud vector database dependencies
    - Scalable vector storage and search
    - Document metadata management
    - Real-time similarity search
@@ -388,8 +398,34 @@ semantic-search/
 
 ### Service Architecture
 
-The project consists of three main services:
+The project consists of three main services, all running in Docker containers:
 
-1. **Weaviate Vector Database**: Stores document embeddings and enables similarity search
-2. **Search Server (FastAPI)**: Processes documents, generates embeddings, and serves search requests
-3. **Demo Frontend (Streamlit)**: Provides a user-friendly interface for interacting with the system
+1. **Self-Hosted Weaviate Vector Database**: 
+   - Deployed as a containerized service alongside your application
+   - Stores document embeddings and enables similarity search
+   - Provides complete control over your vector data
+   - Eliminates dependency on external vector database services
+   - Configured for optimal performance with your specific data needs
+
+2. **Search Server (FastAPI)**: 
+   - Processes documents, generates embeddings, and serves search requests
+   - Communicates directly with the self-hosted Weaviate instance
+   - Handles all vector operations without external dependencies
+
+3. **Demo Frontend (Streamlit)**: 
+   - Provides a user-friendly interface for interacting with the system
+   - Connects to the Search Server API for document processing and querying
+
+## 🌟 Project Highlights
+
+- **Designed and implemented a full-stack RAG system** using FastAPI, Weaviate, and OpenAI
+- **Architected a containerized microservices solution** with Docker Compose
+- **Deployed a fully self-hosted vector database** for complete data control and privacy
+- **Engineered an intelligent text processing pipeline** for optimal document chunking
+- **Integrated OpenAI's latest embedding models** for semantic search
+- **Developed comprehensive REST API endpoints** with full documentation
+- **Created resilient error handling mechanisms** for system stability
+- **Optimized vector search performance** through fine-tuning
+- **Implemented cross-version compatibility** for OpenAI SDK
+- **Executed thorough end-to-end testing** of all components
+- **Provided detailed documentation** for developers and users
