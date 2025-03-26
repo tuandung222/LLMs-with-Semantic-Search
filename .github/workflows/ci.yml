@@ -1,0 +1,121 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**/*.md'
+      - '.gitignore'
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  DOCKER_USERNAME: tuandung12092002
+  SEARCH_SERVER_IMAGE: tuandung12092002/semantic-search-server
+  DEMO_APP_IMAGE: tuandung12092002/semantic-search-demo
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata for Search Server
+        id: meta-search
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.SEARCH_SERVER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+
+      - name: Build and Push Search Server Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/search_server.Dockerfile
+          push: true
+          tags: ${{ steps.meta-search.outputs.tags }}
+          labels: ${{ steps.meta-search.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for Demo App
+        id: meta-demo
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DEMO_APP_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+
+      - name: Build and Push Demo App Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/demo_app.Dockerfile
+          push: true
+          tags: ${{ steps.meta-demo.outputs.tags }}
+          labels: ${{ steps.meta-demo.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  test-deployment:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Create secrets directory
+        run: mkdir -p secrets
+
+      - name: Create OpenAI API key file
+        run: echo "${{ secrets.OPENAI_API_KEY }}" > secrets/openai_api_key.txt
+
+      - name: Create Weaviate API key file
+        run: echo "${{ secrets.WEAVIATE_API_KEY }}" > secrets/weaviate_api_key.txt
+
+      - name: Deploy application
+        run: |
+          docker-compose -f docker/docker-compose.full.yml up -d
+
+      - name: Wait for services to start
+        run: |
+          sleep 30
+          docker-compose -f docker/docker-compose.full.yml ps
+
+      - name: Test Search API
+        run: |
+          # Wait for the API to be ready
+          sleep 10
+          curl -X POST http://localhost:8000/process-text \
+            -H "Content-Type: application/json" \
+            -d '{"text": "This is a test document for CI/CD pipeline."}'
+          
+          curl -X POST http://localhost:8000/ask-question \
+            -H "Content-Type: application/json" \
+            -d '{"question": "What is semantic search?", "num_search_results": 3, "num_generations": 1}'
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f docker/docker-compose.full.yml down 
