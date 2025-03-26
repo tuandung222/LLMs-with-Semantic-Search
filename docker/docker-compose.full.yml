@@ -1,0 +1,105 @@
+# version: '3.8'
+
+services:
+  weaviate:
+    image: semitechnologies/weaviate:1.21.2
+    ports:
+      - "8082:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      CLUSTER_HOSTNAME: 'node1'
+      DEFAULT_VECTORIZER_MODULE: 'text2vec-openai'
+      ENABLE_MODULES: 'text2vec-openai'
+      OPENAI_APIKEY_FILE: /run/secrets/openai_api_key
+      WEAVIATE_API_KEY_FILE: /run/secrets/weaviate_api_key
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    secrets:
+      - openai_api_key
+      - weaviate_api_key
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/v1/meta || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - semantic_search_net
+
+  search_server:
+    build:
+      context: ..
+      dockerfile: docker/search_server.Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
+      - WEAVIATE_URL=http://weaviate:8080
+      - WEAVIATE_API_KEY_FILE=/run/secrets/weaviate_api_key
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+      - LOAD_SAMPLE_DATA=true
+    secrets:
+      - openai_api_key
+      - weaviate_api_key
+    depends_on:
+      weaviate:
+        condition: service_healthy
+    volumes:
+      - ../src:/app/src
+      - ../requirements.txt:/app/requirements.txt
+      - ../.env:/app/.env
+      - ../logging_config.json:/app/logging_config.json
+    networks:
+      - semantic_search_net
+    healthcheck:
+      test: curl --fail --silent http://localhost:8000/health || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  demo_app:
+    build:
+      context: ..
+      dockerfile: docker/demo_app.Dockerfile
+    ports:
+      - "8501:8501"
+    env_file:
+      - ../.env
+    environment:
+      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
+      - API_URL=http://search_server:8000
+      - DEMO_PORT=8501
+      - LOG_LEVEL=INFO
+    secrets:
+      - openai_api_key
+    depends_on:
+      search_server:
+        condition: service_healthy
+    volumes:
+      - ../src:/app/src
+      - ../requirements.txt:/app/requirements.txt
+      - ../.env:/app/.env
+      - ../logging_config.json:/app/logging_config.json
+    networks:
+      - semantic_search_net
+
+volumes:
+  weaviate_data:
+    driver: local
+
+networks:
+  semantic_search_net:
+    driver: bridge
+
+secrets:
+  openai_api_key:
+    file: ../openai_api_key.txt
+  weaviate_api_key:
+    file: ../weaviate_api_key.txt 

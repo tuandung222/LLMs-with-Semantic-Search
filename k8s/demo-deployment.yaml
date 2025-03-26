@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semantic-search-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: semantic-search-demo
+  template:
+    metadata:
+      labels:
+        app: semantic-search-demo
+    spec:
+      containers:
+      - name: demo
+        image: ${PROJECT_ID}-docker.pkg.dev/${PROJECT_ID}/semantic-search-demo:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: API_URL
+          value: "http://semantic-search-api"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: semantic-search-demo
+spec:
+  selector:
+    app: semantic-search-demo
+  ports:
+  - port: 80
+    targetPort: 8501
+  type: LoadBalancer 

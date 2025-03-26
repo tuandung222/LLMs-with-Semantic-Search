@@ -1,0 +1,102 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: your-project-id  # Replace with your GCP project ID
+  GKE_CLUSTER: your-cluster-name  # Replace with your GKE cluster name
+  GKE_ZONE: your-zone  # Replace with your GKE cluster zone
+  IMAGE_API: semantic-search-api
+  IMAGE_DEMO: semantic-search-demo
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+    
+    - name: Run tests
+      run: |
+        pytest
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Configure Docker for Artifact Registry
+      run: |
+        gcloud auth configure-docker ${{ env.PROJECT_ID }}-docker.pkg.dev
+    
+    - name: Build and push API image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_API }}:${{ github.sha }}
+          ${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_API }}:latest
+    
+    - name: Build and push Demo image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./demo.Dockerfile
+        push: true
+        tags: |
+          ${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_DEMO }}:${{ github.sha }}
+          ${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_DEMO }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Login to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Get GKE credentials
+      run: |
+        gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }}
+    
+    - name: Deploy to GKE
+      run: |
+        # Update API deployment
+        kubectl set image deployment/semantic-search-api \
+          api=${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_API }}:${{ github.sha }}
+        
+        # Update Demo deployment
+        kubectl set image deployment/semantic-search-demo \
+          demo=${{ env.PROJECT_ID }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.IMAGE_DEMO }}:${{ github.sha }} 

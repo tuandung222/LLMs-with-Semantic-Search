@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: semantic-search-server
+spec:
+  selector:
+    app: semantic-search-server
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: semantic-search-demo
+spec:
+  selector:
+    app: semantic-search-demo
+  ports:
+  - port: 80
+    targetPort: 8501
+    protocol: TCP
+    name: http
+  type: LoadBalancer 

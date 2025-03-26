@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semantic-search-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: semantic-search-api
+  template:
+    metadata:
+      labels:
+        app: semantic-search-api
+    spec:
+      containers:
+      - name: api
+        image: ${PROJECT_ID}-docker.pkg.dev/${PROJECT_ID}/semantic-search-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: COHERE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: cohere-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: semantic-search-api
+spec:
+  selector:
+    app: semantic-search-api
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP 

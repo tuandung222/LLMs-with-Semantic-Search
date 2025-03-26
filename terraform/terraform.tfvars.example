@@ -1,0 +1,14 @@
+project_id = "your-project-id"
+region = "us-central1"
+cluster_name = "semantic-search-cluster"
+domain = "your-domain.com"
+openai_api_key = "your-openai-api-key"
+gke_num_nodes = 2
+
+# Weaviate Configuration
+weaviate_storage_size = "10Gi"
+weaviate_memory_request = "2Gi"
+weaviate_memory_limit = "4Gi"
+weaviate_cpu_request = "500m"
+weaviate_cpu_limit = "1000m"
+weaviate_api_key = "your-weaviate-api-key" 
