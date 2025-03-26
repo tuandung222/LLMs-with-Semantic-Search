@@ -430,3 +430,230 @@ The project consists of three main services, all running in Docker containers:
 - **Implemented secure secrets management** across local and cloud environments
 - **Optimized vector search performance** through database configuration and query tuning
 - **Created resilient error handling mechanisms** with fallbacks for all external dependencies
+
+## Deployment Options
+
+### Docker Deployment (Recommended)
+
+This is covered in the [Getting Started](#getting-started) section.
+
+### Kubernetes Deployment
+
+Deploy the semantic search application on Kubernetes for production environments with enhanced scalability and resilience.
+
+#### Prerequisites
+
+- Kubernetes cluster (GKE, EKS, AKS, or local cluster like Minikube/Kind)
+- kubectl CLI configured to access your cluster
+- Helm v3+
+
+#### Deployment Steps
+
+1. **Create Kubernetes Secret for API Keys**
+
+   ```bash
+   kubectl create namespace semantic-search
+
+   # Create secrets for API keys
+   kubectl create secret generic api-keys \
+     --from-file=openai-api-key=./openai_api_key.txt \
+     --from-file=weaviate-api-key=./weaviate_api_key.txt \
+     -n semantic-search
+   ```
+
+2. **Deploy Vector Database (Weaviate)**
+
+   ```bash
+   kubectl apply -f k8s/weaviate-deployment.yaml -n semantic-search
+   kubectl apply -f k8s/weaviate-service.yaml -n semantic-search
+   
+   # Wait for Weaviate to be ready
+   kubectl wait --for=condition=ready pod -l app=weaviate -n semantic-search --timeout=180s
+   ```
+
+3. **Deploy Search Server**
+
+   ```bash
+   kubectl apply -f k8s/search-server-deployment.yaml -n semantic-search
+   kubectl apply -f k8s/search-server-service.yaml -n semantic-search
+   
+   # Wait for search server to be ready
+   kubectl wait --for=condition=ready pod -l app=search-server -n semantic-search --timeout=180s
+   ```
+
+4. **Deploy Demo Frontend**
+
+   ```bash
+   kubectl apply -f k8s/demo-app-deployment.yaml -n semantic-search
+   kubectl apply -f k8s/demo-app-service.yaml -n semantic-search
+   ```
+
+5. **Create Ingress (Optional)**
+
+   ```bash
+   kubectl apply -f k8s/ingress.yaml -n semantic-search
+   ```
+
+6. **Verify Deployment**
+
+   ```bash
+   kubectl get pods,svc,ingress -n semantic-search
+   ```
+
+#### Scaling Configuration
+
+The application components can be scaled independently based on workload:
+
+- **Vector Database**: Scale with StatefulSet for data persistence
+   ```bash
+   kubectl scale statefulset weaviate --replicas=3 -n semantic-search
+   ```
+
+- **Search Server**: Scale to handle more concurrent API requests
+   ```bash
+   kubectl scale deployment search-server --replicas=5 -n semantic-search
+   ```
+
+- **Demo Frontend**: Scale based on user traffic
+   ```bash
+   kubectl scale deployment demo-app --replicas=2 -n semantic-search
+   ```
+
+#### Monitoring and Maintenance
+
+- **View Logs**
+   ```bash
+   kubectl logs -f deployment/search-server -n semantic-search
+   kubectl logs -f deployment/demo-app -n semantic-search
+   kubectl logs -f statefulset/weaviate -n semantic-search
+   ```
+
+- **Port Forwarding for Local Access**
+   ```bash
+   # Access Search Server API
+   kubectl port-forward svc/search-server 8000:8000 -n semantic-search
+   
+   # Access Demo Frontend
+   kubectl port-forward svc/demo-app 8501:8501 -n semantic-search
+   
+   # Access Weaviate directly
+   kubectl port-forward svc/weaviate 8082:8080 -n semantic-search
+   ```
+
+### Terraform Infrastructure
+
+Provision and manage your cloud infrastructure for the semantic search application using Terraform.
+
+#### Prerequisites
+
+- Terraform CLI installed (v1.0.0+)
+- Cloud provider CLI configured (gcloud, aws, az)
+- Cloud provider credentials configured
+
+#### Supported Cloud Providers
+
+- Google Cloud Platform (GCP)
+- Amazon Web Services (AWS)
+- Microsoft Azure
+
+#### Deployment Steps
+
+1. **Initialize Terraform**
+
+   ```bash
+   cd terraform
+   
+   # Choose your cloud provider directory
+   cd gcp  # or aws, azure
+   
+   # Initialize Terraform
+   terraform init
+   ```
+
+2. **Configure Variables**
+
+   Create a `terraform.tfvars` file:
+
+   ```
+   # Common variables
+   project_name = "semantic-search"
+   environment = "production"
+   region = "us-central1"  # Change as needed
+   
+   # Kubernetes variables
+   k8s_node_count = 3
+   k8s_node_type = "e2-standard-2"
+   
+   # Application variables
+   create_registry = true
+   deploy_application = true
+   ```
+
+3. **Plan Deployment**
+
+   ```bash
+   terraform plan -out=tfplan
+   ```
+
+4. **Apply Configuration**
+
+   ```bash
+   terraform apply tfplan
+   ```
+
+   This will:
+   - Create a Kubernetes cluster
+   - Set up a Container Registry
+   - Configure networking
+   - Create storage for persistence
+   - Output access information
+
+5. **Configure kubectl**
+
+   ```bash
+   # For GCP
+   gcloud container clusters get-credentials $(terraform output -raw kubernetes_cluster_name) --region $(terraform output -raw region)
+   
+   # For AWS
+   aws eks update-kubeconfig --name $(terraform output -raw kubernetes_cluster_name) --region $(terraform output -raw region)
+   
+   # For Azure
+   az aks get-credentials --resource-group $(terraform output -raw resource_group_name) --name $(terraform output -raw kubernetes_cluster_name)
+   ```
+
+6. **Deploy Application on Kubernetes**
+
+   Follow the Kubernetes deployment steps above, or use the automated deployment:
+
+   ```bash
+   # The Terraform script can trigger the Kubernetes deployment
+   cd ../..
+   ./local_scripts/deploy_to_k8s.sh
+   ```
+
+7. **Cleanup Resources (When Needed)**
+
+   ```bash
+   terraform destroy
+   ```
+
+#### Terraform Modules
+
+The Terraform configuration is organized into modular components:
+
+- **Network**: VPC, subnets, firewall rules
+- **Kubernetes**: Managed Kubernetes cluster
+- **Storage**: Persistent storage for Weaviate
+- **Registry**: Container registry for Docker images
+- **IAM**: Service accounts and permissions
+- **Monitoring**: Logging and alerting setup
+
+#### Customization
+
+Modify `variables.tf` to adjust:
+
+- Cluster size and machine types
+- Network configuration
+- Storage options
+- Multi-region deployment
+- High availability settings
