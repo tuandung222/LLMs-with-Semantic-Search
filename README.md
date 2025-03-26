@@ -22,13 +22,13 @@ A production-ready semantic search application that combines vector embeddings a
 
 ```mermaid
 flowchart TB
-    subgraph "Demo Frontend (Streamlit)"
+    subgraph Frontend["Demo Frontend (Streamlit)"]
         DocUI["Document Upload UI"]
         QuesUI["Question Input UI"]
         ResUI["Results Display UI"]
     end
 
-    subgraph "Search Server (FastAPI)"
+    subgraph Server["Search Server (FastAPI)"]
         TextProc["TextProcessor<br>Clean & Chunk Text"]
         EmbMgr["EmbeddingManager<br>Create & Cache Embeddings"]
         GenSearch["GenerativeSearch<br>Answer Gen. with Context"]
@@ -37,7 +37,7 @@ flowchart TB
         EmbMgr --> GenSearch
     end
     
-    subgraph "External Services"
+    subgraph External["External Services"]
         VecDB["Vector Database<br>(Weaviate)"]
         OpenAI["OpenAI API"]
         SampleData["Sample Data<br>Text Samples & Metadata"]
@@ -51,9 +51,13 @@ flowchart TB
     EmbMgr <-- Vectors --> VecDB
     GenSearch <-- Prompts --> OpenAI
     
-    style Demo%20Frontend%20\(Streamlit\) fill:#e6f7ff,stroke:#0099cc
-    style Search%20Server%20\(FastAPI\) fill:#e6ffe6,stroke:#00cc66
-    style External%20Services fill:#fff0e6,stroke:#ff9933
+    classDef frontend fill:#e6f7ff,stroke:#0099cc
+    classDef server fill:#e6ffe6,stroke:#00cc66
+    classDef external fill:#fff0e6,stroke:#ff9933
+    
+    class Frontend frontend
+    class Server server
+    class External external
 ```
 
 ### Core Components and Data Flow

@@ -27,9 +27,17 @@ jobs:
 
       - name: Set up .env file
         run: |
-          # Copy the example file first
-          cp .env.example .env
-          # No need to add secrets here, they'll be passed at runtime via Docker secrets
+          # Create .env file directly since .env.example might not exist
+          cat << EOF > .env
+          OPENAI_API_KEY=dummy-key-for-ci
+          WEAVIATE_URL=http://weaviate:8080
+          API_HOST=0.0.0.0
+          API_PORT=8000
+          DEMO_PORT=8501
+          LOG_LEVEL=INFO
+          LOAD_SAMPLE_DATA=true
+          EOF
+          echo ".env file created successfully"
 
       - name: Create secret files for build context
         run: |

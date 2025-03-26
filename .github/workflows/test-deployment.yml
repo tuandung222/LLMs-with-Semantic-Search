@@ -24,6 +24,19 @@ jobs:
           echo "${{ secrets.OPENAI_API_KEY }}" > openai_api_key.txt
           echo "${{ secrets.WEAVIATE_API_KEY }}" > weaviate_api_key.txt
           
+      - name: Create .env file
+        run: |
+          cat << EOF > .env
+          OPENAI_API_KEY=dummy-key-for-ci
+          WEAVIATE_URL=http://weaviate:8080
+          API_HOST=0.0.0.0
+          API_PORT=8000
+          DEMO_PORT=8501
+          LOG_LEVEL=INFO
+          LOAD_SAMPLE_DATA=true
+          EOF
+          echo ".env file created successfully"
+          
       - name: Pull latest images
         run: |
           docker pull tuandung12092002/semantic-search-server:latest
@@ -31,7 +44,7 @@ jobs:
           
       - name: Deploy with Docker Compose
         run: |
-          docker compose -f docker/docker-compose.full.yml up -d
+          docker compose --env-file .env -f docker/docker-compose.full.yml up -d
           
       - name: Wait for services to start
         run: |
@@ -53,5 +66,5 @@ jobs:
           
       - name: Clean up
         run: |
-          docker compose -f docker/docker-compose.full.yml down
+          docker compose --env-file .env -f docker/docker-compose.full.yml down
           rm openai_api_key.txt weaviate_api_key.txt 
