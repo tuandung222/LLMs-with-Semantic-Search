@@ -1,0 +1,57 @@
+name: Test Deployment
+
+on:
+  # Run after docker-build-push workflow completes
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+    branches: [main, master]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  test-deployment:
+    runs-on: ubuntu-latest
+    # Only run if the build-and-push workflow succeeded or was manually triggered
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Create secret files
+        run: |
+          echo "${{ secrets.OPENAI_API_KEY }}" > openai_api_key.txt
+          echo "${{ secrets.WEAVIATE_API_KEY }}" > weaviate_api_key.txt
+          
+      - name: Pull latest images
+        run: |
+          docker pull tuandung12092002/semantic-search-server:latest
+          docker pull tuandung12092002/semantic-search-demo:latest
+          
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose -f docker/docker-compose.full.yml up -d
+          
+      - name: Wait for services to start
+        run: |
+          echo "Waiting for services to be ready..."
+          sleep 30
+          
+      - name: Test Search API
+        run: |
+          curl --fail --silent http://localhost:8000/health
+          echo "Health check successful"
+          
+      - name: Test question answering endpoint
+        run: |
+          curl --fail --silent -X POST http://localhost:8000/ask-question \
+            -H "Content-Type: application/json" \
+            -d '{"question": "What is semantic search?", "num_search_results": 1}' | \
+            grep -q "answers"
+          echo "Question answering test successful"
+          
+      - name: Clean up
+        run: |
+          docker compose -f docker/docker-compose.full.yml down
+          rm openai_api_key.txt weaviate_api_key.txt 
