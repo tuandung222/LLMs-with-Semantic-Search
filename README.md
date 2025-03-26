@@ -1,8 +1,23 @@
 # Semantic Search with Generative AI
 
-A semantic search application that combines vector embeddings and Large Language Models to provide intelligent question answering and information retrieval over custom document collections.
+A production-ready semantic search application that combines vector embeddings and Large Language Models to provide intelligent question answering and information retrieval over custom document collections.
 
-## Architecture Overview
+## 📋 Table of Contents
+- [Architecture Overview](#architecture-overview)
+- [Project Highlights](#project-highlights)
+- [Features](#features)
+- [Key Components](#key-components)
+- [Getting Started](#getting-started)
+- [API Usage](#api-usage)
+- [Deployment Options](#deployment-options)
+  - [Docker Deployment](#docker-deployment-recommended)
+  - [Kubernetes Deployment](#kubernetes-deployment)
+  - [Cloud Infrastructure with Terraform](#terraform-infrastructure)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Development Guide](#development-guide)
+- [Troubleshooting](#troubleshooting)
+
+## 🏗️ Architecture Overview
 
 ```
 ┌───────────────────┐      ┌───────────────────┐      ┌───────────────────┐
@@ -22,273 +37,238 @@ A semantic search application that combines vector embeddings and Large Language
                            └───────────────────┘
 ```
 
-This architecture consists of:
+### System Components
+1. **Vector Database (Weaviate)**
+   - Stores document vectors using OpenAI embeddings
+   - Enables semantic similarity search
+   - Provides scalable vector storage
 
-1. **Vector Database (Weaviate)**: Stores text documents as vectors using OpenAI embeddings
-2. **Search Server (FastAPI)**: Handles document processing, vector searches, and question answering
-3. **Demo Frontend (Streamlit)**: Provides a user interface for document uploads and querying
-4. **OpenAI API**: Generates embeddings and answers questions based on retrieved contexts
+2. **Search Server (FastAPI)**
+   - Handles document processing and chunking
+   - Manages vector searches and embeddings
+   - Implements question answering logic
 
-## Project Highlights
+3. **Demo Frontend (Streamlit)**
+   - User-friendly interface for document uploads
+   - Interactive question answering
+   - Search result visualization
 
-- **Designed and implemented a full-stack Retrieval Augmented Generation (RAG) system** using FastAPI, Weaviate vector database, and OpenAI language models
-- **Architected a containerized microservices solution** with Docker Compose for seamless deployment and scaling
-- **Engineered text processing pipeline** that optimally chunks documents and maintains semantic relationships between sections
-- **Integrated OpenAI embedding models** to convert text into high-dimensional vectors for semantic search capabilities
-- **Developed REST API endpoints** for document processing, semantic search, and AI-powered question answering
-- **Created resilient error handling and fallback mechanisms** ensuring system stability even during API outages
-- **Optimized vector search performance** by fine-tuning embedding parameters and database configurations
-- **Implemented compatibility fixes** for different versions of the OpenAI SDK, ensuring future maintainability
-- **Executed comprehensive end-to-end testing** of all system components, from document ingestion to question answering
-- **Documented system architecture and API endpoints** with clear examples for developers and end-users
+4. **OpenAI Integration**
+   - Text embeddings for semantic search
+   - Question answering with context
+   - Fallback mechanisms for API outages
 
-## Features
+## 🌟 Project Highlights
 
-- **Semantic Search**: Uses text embeddings from OpenAI to find relevant content based on meaning, not just keywords
-- **Document Processing**: Chunks, processes, and indexes documents for efficient retrieval
-- **Question Answering**: Generates answers based on relevant contexts retrieved from your document collection
-- **Multi-Document Support**: Processes multiple documents and maintains their relationships
-- **RESTful API**: Simple endpoints for processing text and asking questions
-- **Docker Containerization**: Easy deployment with Docker and Docker Compose
-- **Scalable Vector Database**: Uses Weaviate for efficient vector storage and retrieval
+- **Designed and implemented a full-stack RAG system** using FastAPI, Weaviate, and OpenAI
+- **Architected a containerized microservices solution** with Docker Compose
+- **Engineered an intelligent text processing pipeline** for optimal document chunking
+- **Integrated OpenAI's latest embedding models** for semantic search
+- **Developed comprehensive REST API endpoints** with full documentation
+- **Created resilient error handling mechanisms** for system stability
+- **Optimized vector search performance** through fine-tuning
+- **Implemented cross-version compatibility** for OpenAI SDK
+- **Executed thorough end-to-end testing** of all components
+- **Provided detailed documentation** for developers and users
 
-## Key Components
+## ✨ Features
 
-### Semantic Search Engine
+### Core Capabilities
+- **Advanced Semantic Search**
+  - Meaning-based content discovery
+  - Multi-document context awareness
+  - Configurable search parameters
 
-The core functionality consists of:
+- **Intelligent Document Processing**
+  - Automatic text chunking
+  - Semantic relationship preservation
+  - Multiple document format support
 
-- **Text Processor**: Splits documents into manageable chunks with appropriate overlap
-- **Embedding Manager**: Generates vector embeddings using OpenAI's text-embedding-3-small model
-- **Generative Search**: Combines search results with OpenAI's language models to generate accurate answers
+- **AI-Powered Question Answering**
+  - Context-aware responses
+  - Multiple generation options
+  - Confidence scoring
 
-### API Endpoints
+### Technical Features
+- **Production-Ready Architecture**
+  - Containerized deployment
+  - Kubernetes support
+  - Cloud infrastructure with Terraform
 
-- `/process-text`: Process and index new text
-- `/ask-question`: Ask questions against the indexed documents
-- `/search`: Perform semantic search over indexed documents
-- `/clear-database`: Clear all indexed content
-- `/health`: Check the health of the system
-- `/database-contents`: Retrieve a list of all indexed text chunks
+- **Developer-Friendly API**
+  - RESTful endpoints
+  - Comprehensive documentation
+  - Example implementations
 
-## Sample Data
+- **Robust Data Management**
+  - Vector database optimization
+  - Efficient data indexing
+  - Backup and recovery options
 
-The system comes preloaded with sample data covering diverse topics (50-100 words each):
-
-- Technology (Quantum Computing, AI, Blockchain, VR)
-- Science (Space Exploration, Genetic Engineering, Deep Sea Ecosystems)
-- Environment (Climate Change, Renewable Energy, Biodiversity)
-- Healthcare (Mediterranean Diet, Mindfulness Meditation)
-- Arts & Humanities (History of Jazz, Japanese Gardens, Photography)
-- Psychology & Social Sciences (Decision-Making Psychology)
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Python 3.8+
+- Python 3.9+
 - Docker and Docker Compose
 - OpenAI API key
+- (Optional) Kubernetes cluster for k8s deployment
+- (Optional) GCP account for Terraform deployment
 
-### Environment Setup
-
-1. Create an `.env` file with your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
-   ```
-
-2. Create API key files:
+### Quick Start
+1. **Clone the repository**
    ```bash
+   git clone https://github.com/yourusername/semantic-search.git
+   cd semantic-search
+   ```
+
+2. **Set up environment**
+   ```bash
+   # Create environment files
+   cp .env.example .env
    echo "your_openai_api_key" > openai_api_key.txt
    echo "your_weaviate_api_key" > weaviate_api_key.txt
    ```
 
-### Docker Deployment (Recommended)
-
-1. Run the full deployment with sample data:
+3. **Start the application**
    ```bash
    docker-compose -f docker/docker-compose.full.yml up -d
    ```
 
-2. Access the services:
-   - API: http://localhost:8000
-   - Demo Interface: http://localhost:8501
+4. **Access the services**
+   - Demo UI: http://localhost:8501
+   - API Docs: http://localhost:8000/docs
    - Weaviate Console: http://localhost:8082/v1/console
 
-### API Usage
+## 🔧 API Usage
 
-Process a document:
+### Process Documents
 ```bash
 curl -X POST http://localhost:8000/process-text \
   -H "Content-Type: application/json" \
-  -d '{"text":"Your document text here"}'
+  -d '{
+    "text": "Your document content here",
+    "metadata": {
+      "source": "example.pdf",
+      "author": "John Doe"
+    }
+  }'
 ```
 
-Ask a question:
+### Ask Questions
 ```bash
 curl -X POST http://localhost:8000/ask-question \
   -H "Content-Type: application/json" \
-  -d '{"question":"Your question here", "num_search_results":3, "num_generations":1}'
+  -d '{
+    "question": "What is semantic search?",
+    "num_search_results": 3,
+    "num_generations": 1,
+    "temperature": 0.7
+  }'
 ```
 
-## CI/CD Pipeline
+### Search Documents
+```bash
+curl -X POST http://localhost:8000/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "quantum computing applications",
+    "limit": 5
+  }'
+```
 
-This project uses GitHub Actions for continuous integration and deployment to automatically build, test, and push Docker images to Docker Hub.
+## 🔄 CI/CD Pipeline
 
 ### Workflow Overview
+- **Automated Testing**: Unit and integration tests
+- **Docker Image Building**: Multi-stage builds with caching
+- **Deployment**: Automated deployment to staging/production
+- **Security Scans**: Dependency and container scanning
 
-The CI/CD pipeline consists of two main jobs:
+### Configuration
+1. **Required Secrets**
+   - `DOCKERHUB_TOKEN`: Docker Hub access token
+   - `OPENAI_API_KEY`: OpenAI API key
+   - `WEAVIATE_API_KEY`: Weaviate API key
 
-1. **Build and Push**: Builds the Docker images for the search server and demo app, then pushes them to Docker Hub
-2. **Test Deployment**: Deploys the application with Docker Compose and runs integration tests to verify functionality
+2. **Workflow Triggers**
+   - Push to main/master
+   - Pull requests
+   - Manual dispatch
 
-### GitHub Actions Configuration
+## 🛠️ Development Guide
 
-The workflow is triggered on:
-- Pushes to main/master branches
-- Pull requests to main/master branches
-- Manual triggers via the GitHub Actions UI
-
-### Docker Hub Images
-
-The pipeline publishes the following images:
-- `tuandung12092002/semantic-search-server`: The FastAPI backend service
-- `tuandung12092002/semantic-search-demo`: The Streamlit frontend application
-
-### Setting Up CI/CD
-
-To use this CI/CD pipeline in your own fork:
-
-1. Create the following secrets in your GitHub repository:
-   - `DOCKERHUB_TOKEN`: Your Docker Hub access token
-   - `OPENAI_API_KEY`: Your OpenAI API key for testing
-
-2. Push to the main/master branch or create a pull request to trigger the workflow
-
-3. Monitor the workflow execution in the "Actions" tab of your GitHub repository
-
-## OpenAI Version Compatibility
-
-This project has been tested with the following OpenAI versions:
-- OpenAI Python SDK v0.28.0 (Legacy API)
-
-If you encounter issues with newer versions of the OpenAI library, the system is configured to fall back to using dummy vectors.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OpenAI API Authentication Errors**:
-   - Verify your API key is correctly set in the environment variables
-   - Check OpenAI API usage limits and billing status
-
-2. **Vector Database Connection Issues**:
-   - Ensure Weaviate container is running and healthy
-   - Check network connectivity between containers
-
-3. **Search Returns Poor Results**:
-   - Add more diverse and relevant documents to your collection
-   - Experiment with different chunk sizes in the text processor
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- [OpenAI](https://openai.com/) for providing the embedding and language models
-- [Weaviate](https://weaviate.io/) for the vector database
-- [FastAPI](https://fastapi.tiangolo.com/) for the API framework
-- [Streamlit](https://streamlit.io/) for the demo interface
-
-## Kubernetes Deployment
-
-The application can be deployed to Kubernetes using the provided manifests in the `k8s/` directory.
-
-### Prerequisites
-
-- Kubernetes cluster (v1.19+)
-- `kubectl` command-line tool
-- Docker images pushed to your registry
-
-### Deployment Steps
-
-1. Create a namespace:
+### Local Development
+1. **Set up virtual environment**
    ```bash
-   kubectl create namespace semantic-search
+   python -m venv venv
+   source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+   pip install -r requirements.txt
    ```
 
-2. Create secrets:
+2. **Install development dependencies**
    ```bash
-   kubectl create secret generic semantic-search-secrets \
-     --from-literal=openai-api-key=your_openai_api_key \
-     --from-literal=weaviate-api-key=your_weaviate_api_key \
-     -n semantic-search
+   pip install -r requirements-dev.txt
    ```
 
-3. Apply Kubernetes manifests:
+3. **Run tests**
    ```bash
-   kubectl apply -f k8s/base/ -n semantic-search
+   pytest tests/
    ```
 
-4. Verify deployment:
-   ```bash
-   kubectl get pods -n semantic-search
-   kubectl get services -n semantic-search
-   ```
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints
+- Write docstrings for all functions
+- Maintain test coverage
 
-### Accessing the Application
+## ❗ Troubleshooting
 
-- Search Server API: `http://semantic-search-server:8000`
-- Demo Interface: Use the external IP of the `semantic-search-demo` service
-- Weaviate Console: `http://weaviate:8080/v1/console`
+### Common Issues and Solutions
 
-## Terraform Infrastructure
+1. **OpenAI API Issues**
+   - **Error**: Authentication failed
+     ```
+     Solution: Check API key in .env and secrets
+     ```
+   - **Error**: Rate limit exceeded
+     ```
+     Solution: Implement request throttling or upgrade API tier
+     ```
 
-The project includes Terraform configurations to set up the infrastructure on Google Cloud Platform (GCP).
+2. **Docker Issues**
+   - **Error**: Container fails to start
+     ```
+     Solution: Check logs with `docker-compose logs`
+     ```
+   - **Error**: Memory limits
+     ```
+     Solution: Adjust Docker resource allocation
+     ```
 
-### Prerequisites
+3. **Vector Database Issues**
+   - **Error**: Connection timeout
+     ```
+     Solution: Verify Weaviate container health
+     ```
+   - **Error**: Index corruption
+     ```
+     Solution: Rebuild index with provided script
+     ```
 
-- Terraform installed (v1.0+)
-- Google Cloud SDK installed
-- GCP project with billing enabled
-- Service account with necessary permissions
+## 📚 Additional Resources
 
-### Infrastructure Components
+- [API Documentation](http://localhost:8000/docs)
+- [OpenAI Documentation](https://platform.openai.com/docs)
+- [Weaviate Documentation](https://weaviate.io/developers/weaviate)
+- [FastAPI Documentation](https://fastapi.tiangolo.com)
 
-- Google Kubernetes Engine (GKE) cluster
-- Node pool with e2-standard-4 machines
-- Persistent storage for Weaviate
-- Network configuration and security settings
+## 📄 License
 
-### Deployment Steps
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-1. Initialize Terraform:
-   ```bash
-   cd terraform
-   terraform init
-   ```
+## 🙏 Acknowledgments
 
-2. Configure variables:
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars with your values
-   ```
-
-3. Apply the infrastructure:
-   ```bash
-   terraform plan
-   terraform apply
-   ```
-
-4. Configure kubectl:
-   ```bash
-   gcloud container clusters get-credentials $(terraform output -raw cluster_name) --region $(terraform output -raw region)
-   ```
-
-### Cleanup
-
-To remove the infrastructure:
-```bash
-terraform destroy
-``` 
+- OpenAI team for their excellent API and models
+- Weaviate team for the vector database
+- FastAPI and Streamlit teams for their frameworks
+- The open-source community for their contributions 
