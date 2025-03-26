@@ -10,6 +10,7 @@ A production-ready semantic search application that combines vector embeddings a
 - [Key Components](#key-components)
 - [Getting Started](#getting-started)
 - [API Usage](#api-usage)
+- [API Reference](#api-reference)
 - [Deployment Options](#deployment-options)
   - [Docker Deployment](#docker-deployment-recommended)
   - [Kubernetes Deployment](#kubernetes-deployment)
@@ -226,6 +227,21 @@ curl -X POST http://localhost:8000/search \
 
 ## 🔄 CI/CD Pipeline
 
+### ✅ Build Status
+
+[![Build and Push Docker Images](https://github.com/tuandung12092002/semantic-search/actions/workflows/docker-build-push.yml/badge.svg)](https://github.com/tuandung12092002/semantic-search/actions/workflows/docker-build-push.yml)
+[![Lint and Test](https://github.com/tuandung12092002/semantic-search/actions/workflows/lint-and-test.yml/badge.svg)](https://github.com/tuandung12092002/semantic-search/actions/workflows/lint-and-test.yml)
+[![Test Deployment](https://github.com/tuandung12092002/semantic-search/actions/workflows/test-deployment.yml/badge.svg)](https://github.com/tuandung12092002/semantic-search/actions/workflows/test-deployment.yml)
+
+All CI/CD pipelines for this project are **successfully passing**. The Docker images have been built, tested, and pushed to the [Docker Hub Registry](https://hub.docker.com/r/tuandung12092002/semantic-search-server/tags). Each component has undergone rigorous testing to ensure reliability and performance.
+
+- **Docker Images**: [tuandung12092002/semantic-search-server](https://hub.docker.com/r/tuandung12092002/semantic-search-server/tags) and [tuandung12092002/semantic-search-demo](https://hub.docker.com/r/tuandung12092002/semantic-search-demo/tags)
+- **API Testing**: All endpoints have been tested for functionality and performance
+- **Integration Testing**: Full system integration tests passed successfully
+- **Security Scanning**: Container and dependency vulnerabilities checked
+
+You can verify the CI/CD pipeline status by checking the [GitHub Actions tab](https://github.com/tuandung12092002/semantic-search/actions) in the repository.
+
 ### Workflow Overview
 
 - **Automated Testing**: Unit and integration tests
@@ -245,6 +261,255 @@ curl -X POST http://localhost:8000/search \
    - Push to main/master
    - Pull requests
    - Manual dispatch
+
+## 🔌 API Reference
+
+### API Overview
+
+The semantic search application exposes a RESTful API that enables interaction with the search functionality. All endpoints are available at `http://localhost:8000` when running locally.
+
+### Authentication
+
+Currently, the API uses API key authentication. Include your API key in the request headers:
+
+```
+X-API-Key: your_api_key_here
+```
+
+### Base URL
+
+```
+http://localhost:8000
+```
+
+In production environments with Kubernetes, the base URL depends on your ingress configuration.
+
+### Endpoints
+
+#### 1. Health Check
+
+```
+GET /health
+```
+
+Verify that the API server is running and healthy.
+
+**Response Example:**
+
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "timestamp": "2023-03-26T12:34:56Z"
+}
+```
+
+#### 2. Process Text
+
+```
+POST /process-text
+```
+
+Process and index a document in the vector database.
+
+**Request Body:**
+
+```json
+{
+  "text": "Your document content here. This can be a long text that will be chunked automatically.",
+  "metadata": {
+    "source": "example.pdf",
+    "author": "John Doe",
+    "title": "Example Document",
+    "date": "2023-03-26"
+  }
+}
+```
+
+**Response Example:**
+
+```json
+{
+  "success": true,
+  "message": "Document processed successfully",
+  "chunks": 5,
+  "vector_ids": ["id1", "id2", "id3", "id4", "id5"]
+}
+```
+
+**Status Codes:**
+- `200 OK`: Document processed successfully
+- `400 Bad Request`: Invalid input
+- `500 Internal Server Error`: Processing error
+
+#### 3. Ask Question
+
+```
+POST /ask-question
+```
+
+Ask a question and get an AI-generated answer based on the indexed documents.
+
+**Request Body:**
+
+```json
+{
+  "question": "What is semantic search?",
+  "num_search_results": 3,
+  "num_generations": 1,
+  "temperature": 0.7,
+  "max_tokens": 500
+}
+```
+
+**Parameters:**
+- `question`: The question to answer
+- `num_search_results`: Number of relevant text chunks to retrieve (default: 3)
+- `num_generations`: Number of different answers to generate (default: 1)
+- `temperature`: Creativity of the response (0.0-1.0, default: 0.7)
+- `max_tokens`: Maximum response length (default: 500)
+
+**Response Example:**
+
+```json
+{
+  "answers": [
+    "Semantic search is a search technique that understands the contextual meaning of the search terms, rather than just matching keywords. It uses vector embeddings to represent the meaning of text and finds results based on semantic similarity."
+  ],
+  "documents": [
+    "Semantic search represents a significant advancement over traditional keyword-based search methods. By leveraging vector representations of text, it can understand the meaning and context of search queries.",
+    "Unlike keyword search, semantic search can identify related concepts even when the exact words don't match. This is achieved through vector embeddings that capture semantic relationships.",
+    "Modern semantic search systems often combine machine learning, natural language processing, and vector databases to deliver relevant results based on meaning rather than exact word matches."
+  ],
+  "relevance_scores": [0.92, 0.87, 0.81]
+}
+```
+
+**Status Codes:**
+- `200 OK`: Question answered successfully
+- `400 Bad Request`: Invalid input
+- `500 Internal Server Error`: Processing error
+
+#### 4. Search Documents
+
+```
+POST /search
+```
+
+Search for documents in the vector database without generating an answer.
+
+**Request Body:**
+
+```json
+{
+  "query": "quantum computing applications",
+  "limit": 5,
+  "with_vectors": false
+}
+```
+
+**Parameters:**
+- `query`: The search query
+- `limit`: Maximum number of results to return (default: 5)
+- `with_vectors`: Whether to include vector embeddings in response (default: false)
+
+**Response Example:**
+
+```json
+{
+  "results": [
+    {
+      "text": "Quantum computing applications span many fields including cryptography, optimization problems, and drug discovery. The ability to process multiple states simultaneously offers exponential speedups for certain algorithms.",
+      "metadata": {
+        "source": "quantum_overview.pdf",
+        "page": 12
+      },
+      "relevance": 0.95
+    },
+    {
+      "text": "In financial modeling, quantum algorithms can analyze market data and portfolio optimization scenarios faster than classical computers, potentially revolutionizing trading strategies.",
+      "metadata": {
+        "source": "quantum_finance.pdf",
+        "page": 4
+      },
+      "relevance": 0.88
+    }
+  ],
+  "total_results": 2,
+  "query_vector_id": "query_12345"
+}
+```
+
+**Status Codes:**
+- `200 OK`: Search completed successfully
+- `400 Bad Request`: Invalid input
+- `500 Internal Server Error`: Search error
+
+#### 5. Get Database Contents
+
+```
+GET /database-contents?limit=100
+```
+
+Retrieve the contents stored in the vector database.
+
+**Parameters:**
+- `limit`: Maximum number of documents to return (default: 100)
+
+**Response Example:**
+
+```json
+{
+  "contents": [
+    {
+      "text": "Artificial intelligence (AI) is intelligence demonstrated by machines...",
+      "metadata": {
+        "source": "ai_intro.pdf"
+      }
+    },
+    {
+      "text": "Machine learning is a subset of artificial intelligence...",
+      "metadata": {
+        "source": "ml_basics.pdf"
+      }
+    }
+  ],
+  "total_count": 2
+}
+```
+
+### Error Responses
+
+All endpoints return standard error responses:
+
+```json
+{
+  "error": true,
+  "message": "Detailed error message",
+  "code": "ERROR_CODE"
+}
+```
+
+### Rate Limiting
+
+The API implements rate limiting to prevent abuse:
+
+- 100 requests per minute per IP address
+- 5 requests per minute for `/process-text` endpoint
+
+### OpenAPI Documentation
+
+The complete API documentation is available via Swagger UI at:
+
+```
+http://localhost:8000/docs
+```
+
+Or ReDoc at:
+
+```
+http://localhost:8000/redoc
+```
 
 ## 🛠️ Development Guide
 
