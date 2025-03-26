@@ -55,6 +55,7 @@ jobs:
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: https://hub.docker.com
 
       - name: Extract metadata for Search Server
         id: meta-search
