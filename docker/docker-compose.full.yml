@@ -54,7 +54,7 @@ services:
       - ../src:/app/src
       - ../requirements.txt:/app/requirements.txt
       - ../.env:/app/.env
-      - ../logging_config.json:/app/logging_config.json
+      # - ../logging_config.json:/app/logging_config.json
     networks:
       - semantic_search_net
     healthcheck:
@@ -86,7 +86,7 @@ services:
       - ../src:/app/src
       - ../requirements.txt:/app/requirements.txt
       - ../.env:/app/.env
-      - ../logging_config.json:/app/logging_config.json
+      # - ../logging_config.json:/app/logging_config.json
     networks:
       - semantic_search_net
 

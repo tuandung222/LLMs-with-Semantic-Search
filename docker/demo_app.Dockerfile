@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source code and configuration
 COPY src/ src/
 COPY .env .
-COPY logging_config.json .
+# COPY logging_config.json .
 
 # Set environment variables
 ENV PYTHONPATH=/app

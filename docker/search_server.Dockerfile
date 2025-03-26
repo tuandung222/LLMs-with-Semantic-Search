@@ -19,7 +19,7 @@ RUN pip uninstall -y openai && pip install --no-cache-dir openai==0.28.0
 # Copy source code and configuration
 COPY src/ src/
 COPY setup.py .
-COPY logging_config.json .
+# COPY logging_config.json .
 
 # Install the package in development mode
 RUN pip install -e .
