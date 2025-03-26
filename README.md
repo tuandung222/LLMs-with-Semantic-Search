@@ -17,6 +17,7 @@ A production-ready semantic search application that combines vector embeddings a
 - [CI/CD Pipeline](#cicd-pipeline)
 - [Development Guide](#development-guide)
 - [Troubleshooting](#troubleshooting)
+- [Project Structure](#project-structure)
 
 ## 🏗️ Architecture Overview
 
@@ -319,3 +320,76 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Weaviate team for the vector database
 - FastAPI and Streamlit teams for their frameworks
 - The open-source community for their contributions
+
+## 📁 Project Structure
+
+```
+semantic-search/
+├── .github/                      # GitHub configuration 
+│   └── workflows/                # GitHub Actions CI/CD workflows
+│       ├── docker-build-push.yml # Workflow for building and pushing Docker images
+│       ├── lint-and-test.yml     # Workflow for code linting and testing
+│       └── test-deployment.yml   # Workflow for testing the deployment
+│
+├── docker/                       # Docker configuration
+│   ├── demo_app.Dockerfile       # Dockerfile for Streamlit demo frontend
+│   ├── search_server.Dockerfile  # Dockerfile for FastAPI search server
+│   └── docker-compose.full.yml   # Docker Compose configuration for all services
+│
+├── src/                          # Source code
+│   ├── demo_app/                 # Streamlit frontend application
+│   │   └── app.py                # Main Streamlit app entry point
+│   │
+│   ├── search_server/            # FastAPI server application
+│   │   ├── api/                  # API endpoints definitions
+│   │   └── main.py               # FastAPI server entry point
+│   │
+│   └── semantic_search/          # Core semantic search functionality
+│       ├── config.py             # Configuration and settings
+│       ├── embedding_manager.py  # Vector embeddings generation and management
+│       ├── generative_search.py  # Combines search with LLM generation
+│       ├── sample_data.py        # Example data for demonstration
+│       ├── search_interface.py   # Main interface for search operations
+│       └── text_processor.py     # Text chunking and preprocessing
+│
+├── tests/                        # Test suite
+│   ├── unit/                     # Unit tests for individual components
+│   └── integration/              # Integration tests across components
+│
+├── .env.example                  # Example environment variables
+├── CONTRIBUTING.md               # Contribution guidelines
+├── DEVELOPMENT.md                # Development setup and guidelines
+├── README.md                     # Project documentation
+├── requirements.txt              # Python dependencies
+└── setup.py                      # Package installation script
+```
+
+### Key Components
+
+#### 1. Docker Configuration
+- **demo_app.Dockerfile**: Containerizes the Streamlit frontend
+- **search_server.Dockerfile**: Containerizes the FastAPI backend
+- **docker-compose.full.yml**: Orchestrates all services (Weaviate, Search Server, Demo App)
+
+#### 2. Source Code
+- **demo_app**: Interactive Streamlit frontend for document uploading and question answering
+- **search_server**: FastAPI backend exposing REST endpoints for semantic search operations
+- **semantic_search**: Core library implementing vector search and LLM integration
+
+#### 3. CI/CD Pipeline
+- **docker-build-push.yml**: Builds and publishes Docker images
+- **lint-and-test.yml**: Verifies code quality and runs automated tests
+- **test-deployment.yml**: Validates deployment functionality
+
+#### 4. Documentation
+- **README.md**: Main project documentation
+- **DEVELOPMENT.md**: Guide for developers
+- **CONTRIBUTING.md**: Guidelines for contributors
+
+### Service Architecture
+
+The project consists of three main services:
+
+1. **Weaviate Vector Database**: Stores document embeddings and enables similarity search
+2. **Search Server (FastAPI)**: Processes documents, generates embeddings, and serves search requests
+3. **Demo Frontend (Streamlit)**: Provides a user-friendly interface for interacting with the system
